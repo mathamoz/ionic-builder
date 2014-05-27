@@ -1,0 +1,3 @@
+*.DS_Store
+*.pyc
+builder/settings.py

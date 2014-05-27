@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Projects{% endblock %}
+{% block page-title %}
+<div class="right" style="margin-top: 15px">
+  <a href="/project/new" class="button [tiny small large]">New Project</a>
+</div>
+<h1>Projects</h1>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="small-11 small-centered columns">
+    {% if projects %}
+      <table width="100%">
+        <thead>
+          <tr>
+            <th>Project Name</th>
+            <th>Build Status</th>
+            <th>Start</th>
+            <th>Elapsed</th>
+            <th>End</th>
+            <th>Build Artifact</th>
+			<th></th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for project in projects %}
+            <tr>
+              <td><a href="/project/{{ project.id }}/">{{ project.name }}</a></td>
+              <td>{{ project.status_name|default:"Idle" }}</td>
+              <td>{{ project.started|date:"m/d/Y h:i:s T"|default:"--:--:--" }}</td>
+              <td>{{ project.elapsed|default:"--:--:--" }}</td>
+              <td>{{ project.ended|date:"m/d/Y h:i:s T"|default:"--:--:--" }}</td>
+              <td>No Builds</td>
+			  <td><a href="/project/build/{{ project.id }}" class="label" style="color: #fff;">Force Build</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+        <p>No projects are available.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

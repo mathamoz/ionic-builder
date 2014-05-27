@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}How it Works{% endblock %}
+{% block page-title %}<h1>How Ionic Builder Works</h1>{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="small-11 small-centered columns">
+	  <p>Ionic Builder is pretty bare bones at the moment.  It's really just a proof of concept that happens to be somewhat useful.  In its current form, we make a number of assumptions about your project (eg, it's in a public GitHub repo and you want builds done when you push to master).</p>
+	  <p>To get started, all we need is the GitHub URL of your project.  You can elect to have a build created right away, or you can wait until you do your next push to master.  Then, you need to head over to your GitHub repo and create a webhook to notify Builder when you've pushed new code and it's time to build.</p>
+	  <p>That's pretty much all you need to do. Going forward, when you push new code to master GitHub will notify us via the webhook you created.  When we get that hook, we do the following:<br/>
+		  <ul>
+			  <li>Create a new Docker build container for your project.</li>
+			  <li>Clone your repo into that container.</li>
+			  <li>Add the Android build target to your project.</li>
+			  <li>Execute the Ionic build command.</li>
+			  <li>Create an archive of the APK's that were just built.</li>
+			  <li>Put that archive in a public download location.</li>
+			  <li>Finally, delete the Docker container.</li>
+		  </ul>
+	  </p>
+	  <p>Each time your project is built, any prior build archives will be overwritten by the new one. Your builds always happen in a fresh build container, so there's no extra crap laying around from any other builds.</p>
+  </div>
+</div>
+{% endblock %}

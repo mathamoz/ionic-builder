@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}New Project{% endblock %}
+{% block page-title %}<h1>New Project</h1>{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="small-11 small-centered columns">
+    <p>Enter the details for your project. Currently, only public GitHub projects are accepted. It is assumed that your repository contains all of the Ionic files. We will add the Android build target.</p>
+    <p>You can choose to have your project built immediately.  Otherwise, it will be built each time you push to master.</p>
+
+    {% if error_message %}
+    <div class="alert-box alert radius">
+      <strong>{{ error_message }}</strong>
+    </div>
+    {% endif %}
+
+    <form action="/project/save" method="post">
+      {% csrf_token %}
+      <label>GitHub Project URL
+        <input type="text" name="project_url" placeholder="Full GitHub Project URL, eg. https://github.com/mathamoz/ionic-test-build" value="{{ project_url }}">
+      </label>
+
+      <input id="buildNow" name="buildNow" type="checkbox"><label for="buildNow">Build Now?</label>
+
+      <br/><br/>
+
+      <input type="submit" class="button" value="Save" />
+    </form>
+  </div>
+</div>
+{% endblock %}
