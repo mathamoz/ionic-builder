@@ -8,6 +8,9 @@ from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 
 def index(request):
+	return HttpResponseRedirect('/projects/list')
+
+def listing(request):
     projects = Project.objects.all().order_by('name')
 
     for project in projects:
@@ -68,3 +71,7 @@ def about(request):
 def howitworks(request):
     context = {'active_tab': 'how-it-works'}
     return render(request, 'frontend/how-it-works.html', context)
+
+@csrf_exempt
+def builder(request):
+    return HttpResponse("200")
