@@ -9,6 +9,9 @@ resty http://ionic-builder.tweakbox.net/updates
 # Make the Project directory
 mkdir Project
 
+# Signal build start
+POST /builder '{"build_id": '"$1"', "status_name": "Starting", "status_message": "Starting up..."}'
+
 # Clone the repository
 # NB: Use the HTTPS url to avoid needing to accept the RSA fingerprint
 echo "$(date): Cloning from GitHub..."

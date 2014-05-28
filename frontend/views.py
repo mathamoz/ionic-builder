@@ -86,6 +86,19 @@ def builder(request):
     #POST /builder '{"build_id": $1, "status_name": "Building Project", "status_message": "Building the project"}'
     update_body = json.loads(request.body)
 
+    try:
+        if update_body['status_name'] == 'Starting':
+            build = Build.objects.filter(id=update_body['build_id'])[0]
+            build.started = datetime.now()
+            build.save()
+        elif update_body['status_name'] == 'Build Complete':
+            build = Build.objects.filter(id=update_body['build_id'])[0]
+            build.ended = datetime.now()
+            build.save()
+    except:
+        BuildStatus.objects.create(build_id=update_body['build_id'], status_name=update_body['status_name'], status_message=update_body['status_message'])
+        return HttpResponse('500')
+
     BuildStatus.objects.create(build_id=update_body['build_id'], status_name=update_body['status_name'], status_message=update_body['status_message'])
 
     return HttpResponse('200')
