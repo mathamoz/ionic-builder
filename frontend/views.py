@@ -7,6 +7,7 @@ from frontend.models import Project, Build, BuildStatus
 from django.views.decorators.csrf import csrf_exempt
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 def index(request):
 	return HttpResponseRedirect('/projects/list')
@@ -28,11 +29,18 @@ def listing(request):
         project.status_name = buildstatus.status_name if buildstatus else None
 
         if build and build.ended:
-            project.elapsed = (build.ended - build.started).total_seconds()
+            elapsed = (build.ended - build.started).total_seconds()
         elif build and build.started:
-            project.elapsed = (datetime.now - build.started).total_seconds()
+            now = timezone.make_aware(datetime.now(),timezone.get_default_timezone())
+            elapsed = (now - build.started).total_seconds()
         else:
-            project.elapsed = None
+            elapsed = None
+
+        if elapsed > 90:
+            elapsed = elapsed / 60
+            project.elapsed = "%s minutes" % round(elapsed, 2)
+        else:
+            project.elapsed = "%s seconds" % round(elapsed, 2)
 
     context = {'projects': projects, 'active_tab': 'projects'}
     return render(request, 'frontend/index.html', context)
