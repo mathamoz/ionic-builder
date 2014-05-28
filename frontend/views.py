@@ -36,10 +36,10 @@ def listing(request):
         else:
             elapsed = None
 
-        if elapsed > 90:
+        if elapsed and elapsed > 90:
             elapsed = elapsed / 60
             project.elapsed = "%s minutes" % round(elapsed, 2)
-        else:
+        elif elapsed:
             project.elapsed = "%s seconds" % round(elapsed, 2)
 
     context = {'projects': projects, 'active_tab': 'projects'}
