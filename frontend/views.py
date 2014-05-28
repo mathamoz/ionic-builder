@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from urlparse import urlparse
 from datetime import datetime
+import json
 from frontend.models import Project, Build, BuildStatus
 from django.views.decorators.csrf import csrf_exempt
 from django.core.validators import URLValidator
@@ -82,4 +83,9 @@ def howitworks(request):
 
 @csrf_exempt
 def builder(request):
-    return HttpResponse("200")
+    #POST /builder '{"build_id": $1, "status_name": "Building Project", "status_message": "Building the project"}'
+    update_body = json.loads(request.body)
+
+    BuildStatus.objects.create(build_id=update_body['build_id'], status_name=update_body['status_name'], status_message=update_body['status_message'])
+
+    return HttpResponse('200')

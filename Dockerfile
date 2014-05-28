@@ -33,5 +33,5 @@ RUN rm -rf adt-bundle-linux.zip
 RUN curl -L http://github.com/micha/resty/raw/master/resty > resty
 
 # Fetch our build script
-RUN curl -L http://github.com/mathamoz/ionic-build/raw/master/build.sh > build.sh
+RUN curl -L https://raw.githubusercontent.com/mathamoz/ionic-builder/master/build.sh > build.sh
 RUN chmod +x build.sh
