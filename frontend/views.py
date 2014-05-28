@@ -33,7 +33,7 @@ def listing(request):
         else:
             project.elapsed = None
 
-	context = {'projects': projects, 'active_tab': 'projects'}
+    context = {'projects': projects, 'active_tab': 'projects'}
     return render(request, 'frontend/index.html', context)
 
 def new(request):
