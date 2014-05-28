@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.name }} Details{% endblock %}
+{% block page-title %}<h1>{{project.name }} Details</h1>{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="small-11 small-centered columns">
+	<p><strong>GitHub: </strong><a href="https://github.com/{{ project.github_username }}/{{ project.github_reponame }}">{{ project.github_username }}/{{ project.github_reponame }}</a><br/>
+	<strong>Last Build: </strong>{{ project.last_build|default:'Never' }}<br/>
+	<strong>Build Artifact: </strong>{{ project.build_artifact_url|default:'No Builds' }}</p>
+
+	<h3>Build Log</h3>
+	<div class="panel">
+		{{ project.last_log|default:'No Build Log' }}
+	</div>
+  </div>
+</div>
+{% endblock %}

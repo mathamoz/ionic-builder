@@ -7,4 +7,6 @@ urlpatterns = patterns('',
     url(r'^updates/builder', views.builder, name='builder'),
     url(r'^new', views.new, name='new'),
     url(r'^save', views.save, name='save'),
+	# ex: /project/5/
+    url(r'^(?P<project_id>\d+)/$', views.detail, name='detail'),
 )

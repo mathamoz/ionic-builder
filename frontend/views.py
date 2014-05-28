@@ -57,12 +57,20 @@ def save(request):
 
         Project.objects.create(name=project_name, github_username=username, github_reponame=repo)
 
-        return HttpResponseRedirect('/projects')
+        return HttpResponseRedirect('/projects/list')
     else:
         return render(request, 'frontend/new.html', {
             'project_url': '',
             'error_message': "You didn't specify a URL!",
         })
+
+def detail(request, project_id):
+	try:
+		project = Project.objects.filter(id=project_id)[0]
+		context = {'project': project, 'active_tab': 'projects'}
+		return render(request, 'frontend/detail.html', context)
+	except IndexError:
+		return HttpResponseRedirect('/projects/list')
 
 def about(request):
     context = {'active_tab': 'about'}
