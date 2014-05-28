@@ -9,7 +9,7 @@ class Project(models.Model):
 
 class Build(models.Model):
     project = models.ForeignKey(Project)
-    container_id = models.CharField(max_length=64)
+    container_id = models.CharField(null=True, max_length=64)
     created = models.DateTimeField(auto_now=True)
     started = models.DateTimeField(null=True)
     ended = models.DateTimeField(null=True)

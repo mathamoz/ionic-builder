@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="row">
-  <div class="small-11 small-centered columns">
+  <div class="small-12 small-centered columns">
 	<p><strong>GitHub: </strong><a href="https://github.com/{{ project.github_username }}/{{ project.github_reponame }}">{{ project.github_username }}/{{ project.github_reponame }}</a><br/>
 	<strong>Last Build: </strong>{{ project.last_build|default:'Never' }}<br/>
 	<strong>Build Artifact: </strong>{{ project.build_artifact_url|default:'No Builds' }}</p>
