@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import os
 
 from celery import shared_task
 from frontend.models import BuildLog
@@ -22,7 +23,8 @@ def startBuild(build_id, username, reponame):
 	c.wait(container_id)
 
 	print "Copying build artifact to %s..." % settings.ARTIFACT_PATH
-	c.copy(container_id, "/root/%s-%s.tar.gz %s" % (username, reponame, settings.ARTIFACT_PATH))
+	#c.copy(container_id, "/root/%s-%s.tar.gz %s" % (username, reponame, settings.ARTIFACT_PATH))
+	os.system("docker cp %s:/root/%s-%s.tar.gz %s" % (container_id, username, reponame, settings.ARTIFACT_PATH))
 
 	print "Saving container log..."
 	run_log = c.logs(container_id)

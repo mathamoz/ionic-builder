@@ -32,7 +32,7 @@
               <td id="project-started-{{ project.id }}">{{ project.started|date:"m/d/Y h:i:s T"|default:"--:--:--" }}</td>
               <td id="project-elapsed-{{ project.id }}"><span></span>{{ project.elapsed|default:"--:--:--" }}</td>
               <td id="project-ended-{{ project.id }}">{{ project.ended|date:"m/d/Y h:i:s T"|default:"--:--:--" }}</td>
-              <td>No Builds</td>
+              <td id="project-artifact-{{ project.id }}">{{ project.artifact_url|safe }}</td>
 			  <td><a href="/project/build/{{ project.id }}" class="label" style="color: #fff;">Force Build</a></td>
             </tr>
         {% endfor %}
@@ -65,6 +65,7 @@
 
     if (data.is_ending == true) {
       clearInterval(window['project-timer-' + data.project_id]);
+      $('#project-artifact-' + data.project_id).html(data.artifact_url);
     }
   });
 </script>

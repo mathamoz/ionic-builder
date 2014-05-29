@@ -1,4 +1,4 @@
-import json, pusher
+import json, pusher, os.path
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from urlparse import urlparse
@@ -28,6 +28,8 @@ def listing(request):
         project.started = build.started if build else None
         project.ended = build.ended if build else None
         project.status_name = buildstatus.status_name if buildstatus else None
+
+        project.artifact_url = _getArtifactURL(project)
 
         if build and build.ended:
             elapsed = (build.ended - build.started).total_seconds()
@@ -75,6 +77,8 @@ def detail(request, project_id):
     try:
         project = Project.objects.filter(id=project_id)[0]
 
+        project.artifact_url = _getArtifactURL(project)
+        
         build = _getLastBuild(project_id)
 
         build_log = None
@@ -117,6 +121,8 @@ def builder(request):
     status_name = update_body['status_name']
     status_message = update_body['status_message']
 
+    artifact_url = None
+
     is_starting = False
     is_ending = False
 
@@ -130,6 +136,10 @@ def builder(request):
         elif status_name == 'Build Complete':
             build.ended = timezone.make_aware(datetime.now(),timezone.get_default_timezone())
             build.save()
+
+            # Get the artifact URL
+            project = Project.objects.filter(id=build.project_id)[0]
+            artifact_url = _getArtifactURL(project, False)
             is_ending = True
     except:
         BuildStatus.objects.create(build_id=build_id, status_name=status_name, status_message=status_message)
@@ -142,7 +152,7 @@ def builder(request):
     started = build.started.strftime('%m/%d/%Y %I:%M:%S %Z') if build.started else '--:--:--'
     ended = build.ended.strftime('%m/%d/%Y %I:%M:%S %Z') if build.ended else '--:--:--'
     
-    p['build_status_channel'].trigger('update', {'project_id': build.project_id, 'status_name': status_name, 'started': started, 'ended': ended, 'is_starting': is_starting, 'is_ending': is_ending})
+    p['build_status_channel'].trigger('update', {'project_id': build.project_id, 'status_name': status_name, 'started': started, 'ended': ended, 'is_starting': is_starting, 'is_ending': is_ending, 'artifact_url': artifact_url})
 
     return HttpResponse('Server Response: 200 OK')
 
@@ -163,3 +173,13 @@ def _getLastBuildLog(build_id):
         return BuildLog.objects.filter(build_id=build_id).order_by('-id')[0]
     except IndexError:
         return None
+
+def _getArtifactURL(project, verify=True):
+    artifact_name = "%s-%s.tar.gz" % (project.github_username, project.github_reponame)
+    build_artifact = settings.ARTIFACT_PATH + artifact_name
+
+    artifact_url = None
+    if os.path.isfile(build_artifact) or verify == False:
+        artifact_url = "<a href='/artifacts/%s'>%s</a>" % (artifact_name, artifact_name)
+
+    return artifact_url
