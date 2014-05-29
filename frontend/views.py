@@ -9,6 +9,8 @@ from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
+from frontend.tasks import startBuild
+
 def index(request):
 	return HttpResponseRedirect('/projects/list')
 
@@ -43,7 +45,7 @@ def listing(request):
             project.elapsed = "%s seconds" % round(elapsed, 2)
 
     context = {'projects': projects, 'active_tab': 'projects'}
-    return render(request, 'frontend/index.html', context)
+    return render(request, 'frontend/projects.html', context)
 
 def new(request):
     context = {'active_tab': 'projects'}
@@ -81,6 +83,20 @@ def detail(request, project_id):
 	except IndexError:
 		return HttpResponseRedirect('/projects/list')
 
+def build(request, project_id):
+    try:
+        project = Project.objects.filter(id=project_id)[0]
+        build = Build.objects.create(project_id=project_id)
+        build.save()
+
+        startBuild.delay(build.id, project.github_username, project.github_reponame)
+        BuildStatus.objects.create(build_id=build.id, status_name="Build Queued")        
+
+        return HttpResponseRedirect('/projects/list')
+    except IndexError:
+        return HttpResponseRedirect('/projects/list')
+
+# I should move these to another project or something...
 def about(request):
     context = {'active_tab': 'about'}
     return render(request, 'frontend/about.html', context)
@@ -97,11 +113,11 @@ def builder(request):
     try:
         if update_body['status_name'] == 'Starting':
             build = Build.objects.filter(id=update_body['build_id'])[0]
-            build.started = datetime.now()
+            build.started = timezone.make_aware(datetime.now(),timezone.get_default_timezone())
             build.save()
         elif update_body['status_name'] == 'Build Complete':
             build = Build.objects.filter(id=update_body['build_id'])[0]
-            build.ended = datetime.now()
+            build.ended = timezone.make_aware(datetime.now(),timezone.get_default_timezone())
             build.save()
     except:
         BuildStatus.objects.create(build_id=update_body['build_id'], status_name=update_body['status_name'], status_message=update_body['status_message'])

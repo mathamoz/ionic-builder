@@ -9,7 +9,7 @@ def startBuild(build_id, username, reponame):
 	c = docker.Client(base_url='unix://var/run/docker.sock', version='1.9', timeout=10)
 
 	print "Creating container..."
-	container = c.create_container('ionic-build', "/bin/bash -c './build.sh %s %s %s'" % (1, username, reponame))
+	container = c.create_container('ionic-build', "/bin/bash -c './build.sh %s %s %s'" % (build_id, username, reponame))
 
 	container_id = container['Id']
 
@@ -23,4 +23,4 @@ def startBuild(build_id, username, reponame):
 	c.copy(container_id, "/root/%s-%s.tar.gz ." % (username, reponame))
 
 	print "Removing build container..."
-	#c.remove_container(container_id)
+	c.remove_container(container_id)
