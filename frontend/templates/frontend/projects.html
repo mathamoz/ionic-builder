@@ -28,10 +28,10 @@
         {% for project in projects %}
             <tr>
               <td><a href="/project/{{ project.id }}/">{{ project.name }}</a></td>
-              <td>{{ project.status_name|default:"Idle" }}</td>
-              <td>{{ project.started|date:"m/d/Y h:i:s T"|default:"--:--:--" }}</td>
-              <td>{{ project.elapsed|default:"--:--:--" }}</td>
-              <td>{{ project.ended|date:"m/d/Y h:i:s T"|default:"--:--:--" }}</td>
+              <td id="project-{{ project.id }}">{{ project.status_name|default:"Idle" }}</td>
+              <td id="project-started-{{ project.id }}">{{ project.started|date:"m/d/Y h:i:s T"|default:"--:--:--" }}</td>
+              <td id="project-elapsed-{{ project.id }}"><span></span>{{ project.elapsed|default:"--:--:--" }}</td>
+              <td id="project-ended-{{ project.id }}">{{ project.ended|date:"m/d/Y h:i:s T"|default:"--:--:--" }}</td>
               <td>No Builds</td>
 			  <td><a href="/project/build/{{ project.id }}" class="label" style="color: #fff;">Force Build</a></td>
             </tr>
@@ -43,4 +43,29 @@
     {% endif %}
   </div>
 </div>
+{% endblock %}
+
+{% block footer-scripts %}
+<script type="text/javascript">
+  var pusher = new Pusher('375bb98d5a4550a9ad62');
+  var channel = pusher.subscribe('build_status_channel');
+
+  channel.bind('update', function(data) {
+    $("#project-" + data.project_id).html(data.status_name);
+    $("#project-started-" + data.project_id).html(data.started);
+    $("#project-ended-" + data.project_id).html(data.ended);
+
+    if (data.is_starting == true) {
+      $('#project-elapsed-' + data.project_id).html("<span>0</span>");
+      window['project-timer-' + data.project_id] = setInterval(function() {
+        var current = parseInt($('#project-elapsed-' + data.project_id + ' > span').html());
+        $('#project-elapsed-' + data.project_id).html("<span>" + (current + 1) + "</span> sec");
+      }, 1000);
+    }
+
+    if (data.is_ending == true) {
+      clearInterval(window['project-timer-' + data.project_id]);
+    }
+  });
+</script>
 {% endblock %}

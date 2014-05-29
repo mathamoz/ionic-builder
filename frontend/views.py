@@ -1,4 +1,4 @@
-import json
+import json, pusher
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from urlparse import urlparse
@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.conf import settings
 
 from frontend.tasks import startBuild
 
@@ -36,11 +37,8 @@ def listing(request):
         else:
             elapsed = None
 
-        if elapsed and elapsed > 90:
-            elapsed = elapsed / 60
-            project.elapsed = "%s minutes" % round(elapsed, 2)
-        elif elapsed:
-            project.elapsed = "%s seconds" % round(elapsed, 2)
+        if elapsed:
+            project.elapsed = "%s sec" % round(elapsed, 1)
 
     context = {'projects': projects, 'active_tab': 'projects'}
     return render(request, 'frontend/projects.html', context)
@@ -112,25 +110,41 @@ def howitworks(request):
 
 @csrf_exempt
 def builder(request):
-    #POST /builder '{"build_id": $1, "status_name": "Building Project", "status_message": "Building the project"}'
+    #POST /builder '{"build_id": 10, "status_name": "Building Project", "status_message": "Building the project"}'
     update_body = json.loads(request.body)
 
+    build_id = update_body['build_id']
+    status_name = update_body['status_name']
+    status_message = update_body['status_message']
+
+    is_starting = False
+    is_ending = False
+
     try:
-        if update_body['status_name'] == 'Starting':
-            build = Build.objects.filter(id=update_body['build_id'])[0]
+        build = Build.objects.filter(id=build_id)[0]
+
+        if status_name == 'Starting':
             build.started = timezone.make_aware(datetime.now(),timezone.get_default_timezone())
             build.save()
-        elif update_body['status_name'] == 'Build Complete':
-            build = Build.objects.filter(id=update_body['build_id'])[0]
+            is_starting = True
+        elif status_name == 'Build Complete':
             build.ended = timezone.make_aware(datetime.now(),timezone.get_default_timezone())
             build.save()
+            is_ending = True
     except:
-        BuildStatus.objects.create(build_id=update_body['build_id'], status_name=update_body['status_name'], status_message=update_body['status_message'])
+        BuildStatus.objects.create(build_id=build_id, status_name=status_name, status_message=status_message)
         return HttpResponse('500')
 
-    BuildStatus.objects.create(build_id=update_body['build_id'], status_name=update_body['status_name'], status_message=update_body['status_message'])
+    BuildStatus.objects.create(build_id=build_id, status_name=status_name, status_message=status_message)
 
-    return HttpResponse('200')
+    p = pusher.Pusher(app_id=settings.PUSHER_APP_ID, key=settings.PUSHER_APP_KEY, secret=settings.PUSHER_APP_SECRET)
+    
+    started = build.started.strftime('%m/%d/%Y %I:%M:%S %Z') if build.started else '--:--:--'
+    ended = build.ended.strftime('%m/%d/%Y %I:%M:%S %Z') if build.ended else '--:--:--'
+    
+    p['build_status_channel'].trigger('update', {'project_id': build.project_id, 'status_name': status_name, 'started': started, 'ended': ended, 'is_starting': is_starting, 'is_ending': is_ending})
+
+    return HttpResponse('Server Response: 200 OK')
 
 def _getLastBuild(project_id):
     try:

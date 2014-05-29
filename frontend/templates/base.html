@@ -38,8 +38,10 @@
   {% block content %}{% endblock %}
   <script src="/js/vendor/jquery.js"></script>
   <script src="/js/foundation.min.js"></script>
+  <script src="http://js.pusher.com/2.2/pusher.min.js"></script>
   <script>
     $(document).foundation();
   </script>
+  {% block footer-scripts %}{% endblock %}
 </body>
 </html>
