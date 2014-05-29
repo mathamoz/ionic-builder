@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 from celery import shared_task
 from frontend.models import BuildLog
+from django.conf import settings
 
 @shared_task
 def startBuild(build_id, username, reponame):
@@ -20,13 +21,13 @@ def startBuild(build_id, username, reponame):
 	print "Building..."
 	c.wait(container_id)
 
-	print "Copying build artifact..."
-	c.copy(container_id, "/root/%s-%s.tar.gz ." % (username, reponame))
+	print "Copying build artifact to %s..." % settings.ARTIFACT_PATH
+	c.copy(container_id, "/root/%s-%s.tar.gz %s" % (username, reponame, settings.ARTIFACT_PATH))
 
 	print "Saving container log..."
 	run_log = c.logs(container_id)
 	l = BuildLog.objects.create(build_id=build_id, log=run_log)
 	l.save()
-	
+
 	print "Removing build container..."
 	c.remove_container(container_id)
