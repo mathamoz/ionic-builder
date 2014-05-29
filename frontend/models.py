@@ -19,3 +19,7 @@ class BuildStatus(models.Model):
     status_name = models.CharField(max_length=32)
     status_message = models.TextField(null=True)
     logged = models.DateTimeField(auto_now=True)
+
+class BuildLog(models.Model):
+    build = models.ForeignKey(Build)
+    log = models.TextField(null=True)

@@ -1,9 +1,9 @@
+import json
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from urlparse import urlparse
 from datetime import datetime
-import json
-from frontend.models import Project, Build, BuildStatus
+from frontend.models import Project, Build, BuildStatus, BuildLog
 from django.views.decorators.csrf import csrf_exempt
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
@@ -19,12 +19,10 @@ def listing(request):
 
     for project in projects:
         # Somehow I could do this all as one query, investigate later...
-        try:
-            build = Build.objects.filter(project_id=project.id).order_by('-id')[0]
-            buildstatus = BuildStatus.objects.filter(build_id=build.id).order_by('-id')[0]
-        except IndexError:
-            build = None
-            buildstatus = None
+        build = _getLastBuild(project.id)
+        buildstatus = None
+        if build:
+            buildstatus = _getLastBuildStatus(build.id)
 
         project.started = build.started if build else None
         project.ended = build.ended if build else None
@@ -76,12 +74,19 @@ def save(request):
         })
 
 def detail(request, project_id):
-	try:
-		project = Project.objects.filter(id=project_id)[0]
-		context = {'project': project, 'active_tab': 'projects'}
-		return render(request, 'frontend/detail.html', context)
-	except IndexError:
-		return HttpResponseRedirect('/projects/list')
+    try:
+        project = Project.objects.filter(id=project_id)[0]
+
+        build = _getLastBuild(project_id)
+
+        build_log = None
+        if build:
+            build_log = _getLastBuildLog(build.id)
+
+        context = {'project': project, 'build': build, 'build_log': build_log, 'active_tab': 'projects'}
+        return render(request, 'frontend/detail.html', context)
+    except IndexError:
+        return HttpResponseRedirect('/projects/list')
 
 def build(request, project_id):
     try:
@@ -126,3 +131,21 @@ def builder(request):
     BuildStatus.objects.create(build_id=update_body['build_id'], status_name=update_body['status_name'], status_message=update_body['status_message'])
 
     return HttpResponse('200')
+
+def _getLastBuild(project_id):
+    try:
+        return Build.objects.filter(project_id=project_id).order_by('-id')[0]
+    except IndexError:
+        return None
+
+def _getLastBuildStatus(build_id):
+    try:
+        return BuildStatus.objects.filter(build_id=build_id).order_by('-id')[0]
+    except IndexError:
+        return None
+
+def _getLastBuildLog(build_id):
+    try:
+        return BuildLog.objects.filter(build_id=build_id).order_by('-id')[0]
+    except IndexError:
+        return None
